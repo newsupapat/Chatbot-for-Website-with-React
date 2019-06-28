@@ -33,45 +33,73 @@ class Chatbot extends Component {
     }
   }
 
-  async df_text_query (queryText) {
+  async df_text_query (text) {
     let says = {
-      speaks: 'user',
-      msg: {
-        text: {
-          text: queryText
+        speaks: 'user',
+        msg: {
+            text : {
+                text: text
+            }
         }
-      }
     }
-    this.setState({ messages: [...this.state.messages, says] })
-    const res = await axios.post('/api/df_text_query', {
-      text: queryText,
-      userID: cookies.get('userID')
-    })
+    this.setState({ messages: [...this.state.messages, says]});
+    try {
+        const res = await axios.post('/api/df_text_query',  {text, userID: cookies.get('userID')});
 
-    for (let msg of res.data.fulfillmentMessages) {
-      says = {
-        speaks: 'bot',
-        msg: msg
-      }
-      this.setState({ messages: [...this.state.messages, says] })
+        for (let msg of res.data.fulfillmentMessages) {
+            says = {
+                speaks: 'bot',
+                msg: msg
+            }
+            this.setState({ messages: [...this.state.messages, says]});
+        }
+    } catch (e) {
+        says = {
+            speaks: 'bot',
+            msg: {
+                text : {
+                    text: "I'm having troubles. I need to terminate. will be back later"
+                }
+            }
+        }
+        this.setState({ messages: [...this.state.messages, says]});
+        let that = this;
+        setTimeout(function(){
+            that.setState({ showBot: false})
+        }, 2000);
     }
-  }
+};
 
-  async df_event_query (eventName) {
-    const res = await axios.post('/api/df_event_query', {
-      event: eventName,
-      userID: cookies.get('userID')
-    })
 
-    for (let msg of res.data.fulfillmentMessages) {
-      let says = {
-        speaks: 'bot',
-        msg: msg
-      }
+async df_event_query(event) {
+    try {
+        const res = await axios.post('/api/df_event_query',  {event, userID: cookies.get('userID')});
 
-      this.setState({ messages: [...this.state.messages, says] })
+        for (let msg of res.data.fulfillmentMessages) {
+            let says = {
+                speaks: 'bot',
+                msg: msg
+            }
+
+            this.setState({ messages: [...this.state.messages, says]});
+        }
+    } catch (e) {
+        let says = {
+            speaks: 'bot',
+            msg: {
+                text : {
+                    text: "I'm having troubles. I need to terminate. will be back later"
+                }
+            }
+        }
+        this.setState({ messages: [...this.state.messages, says]});
+        let that = this;
+        setTimeout(function(){
+            that.setState({ showBot: false})
+        }, 2000);
     }
-  }
+
+};
 
   resolveAfterXSeconds (x) {
     return new Promise(resolve => {
